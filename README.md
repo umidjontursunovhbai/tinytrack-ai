@@ -10,7 +10,9 @@ Right now the project is in the basic Pygame stage:
 
 - open a game window
 - draw a simple car rectangle
-- move the car on screen
+- move the car with arrow keys
+- keep the car inside the screen
+- draw a simple rectangular track
 - learn how the game loop works
 
 AI training will be added after the environment is easy to understand.
@@ -42,6 +44,9 @@ python tinytrack_env.py
 This project is for learning:
 
 - how game loops work
+- how keyboard input works
+- how screen coordinates work
+- how boundary clamping works
 - how visual simulations are built
 - what an AI environment is
 - how observations, actions, rewards, and episodes work
