@@ -1,22 +1,16 @@
 import pygame
+import math
 
 WIDTH = 900
 HEIGHT = 600
-FPS = 60
-
-BACKGROUND_COLOR = (25, 25, 25)
-TRACK_COLOR = (220, 220, 220)
-CAR_COLOR = (40, 180, 255)
-CRASH_COLOR = (255, 60, 60)
-
-TRACK_OUTER = (100, 100, 700, 400)
-TRACK_INNER = (250, 200, 400, 200)
-
-START_X = 120
-START_Y = 280
-CAR_WIDTH = 40
 CAR_HEIGHT = 20
-CAR_SPEED = 3
+CAR_WIDTH = 40
+CRASHED_COLOR = (255, 60, 60)
+NOT_CRASHED_COLOR = (40, 180, 255)
+FPS = 60
+ACCELERATION = 0.4
+FRICTION = 0.9
+MAX_SPEED = 5
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -25,12 +19,13 @@ pygame.display.set_caption("TinyTrack AI")
 
 running = True
 
-car_x = START_X
-car_y = START_Y
+car_x = 120 # Starting position of the car in x direction
+car_y = 280 # Starting position of the car in y direction
 car_width = CAR_WIDTH
 car_height = CAR_HEIGHT
-car_speed = CAR_SPEED
 crashed = False
+car_angle = 0
+car_velocity = 0
 
 while running:
     for event in pygame.event.get():
@@ -38,22 +33,36 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
-                car_x = START_X
-                car_y = START_Y
+                car_x = 120
+                car_y = 280
                 crashed = False
+                car_angle = 0
+                car_velocity = 0
 
     clock.tick(FPS)
     # car_x += 1  # Move the car to the right for demonstration
     keys = pygame.key.get_pressed()
     if not crashed:
-        if keys[pygame.K_RIGHT]:
-            car_x += car_speed
-        if keys[pygame.K_LEFT]:
-            car_x -= car_speed
-        if keys[pygame.K_UP]:
-            car_y -= car_speed
-        if keys[pygame.K_DOWN]:
-            car_y += car_speed
+        if keys[pygame.K_a]:
+            car_angle += 3
+        if keys[pygame.K_d]:
+            car_angle -= 3
+
+        angle_rad = math.radians(car_angle)
+        if keys[pygame.K_w]:
+            car_velocity += ACCELERATION
+        if keys[pygame.K_s]:
+            car_velocity -= ACCELERATION
+
+        if car_velocity > MAX_SPEED:
+            car_velocity = MAX_SPEED
+        if car_velocity < -MAX_SPEED:
+            car_velocity = -MAX_SPEED
+
+        car_velocity *= FRICTION
+
+        car_x += car_velocity * math.cos(angle_rad)
+        car_y -= car_velocity * math.sin(angle_rad)
 
     if car_x < 0:
         car_x = 0
@@ -64,36 +73,37 @@ while running:
     if car_y > HEIGHT - car_height:
         car_y = HEIGHT - car_height
 
-    car_center_x = car_x + car_width / 2
-    car_center_y = car_y + car_height / 2
+    car_center_x = car_x + CAR_WIDTH / 2
+    car_center_y = car_y + CAR_HEIGHT / 2
 
-    outer_x, outer_y, outer_width, outer_height = TRACK_OUTER
-    inner_x, inner_y, inner_width, inner_height = TRACK_INNER
-
-    inside_outer = (
-        outer_x < car_center_x < outer_x + outer_width
-        and outer_y < car_center_y < outer_y + outer_height
-    )
-    inside_inner = (
-        inner_x < car_center_x < inner_x + inner_width
-        and inner_y < car_center_y < inner_y + inner_height
-    )
+    inside_outer = 100 < car_center_x < WIDTH - 100 and 100 < car_center_y < HEIGHT - 100
+    inside_inner = 250 < car_center_x < WIDTH - 250 and 200 < car_center_y < HEIGHT - 200
     on_track = inside_outer and not inside_inner
 
     if not on_track:
         crashed = True
+        car_velocity = 0
 
-    if crashed:
-        car_color = CRASH_COLOR
+    if not crashed:
+        car_color = NOT_CRASHED_COLOR
     else:
-        car_color = CAR_COLOR
+        car_color = CRASHED_COLOR
+        
+    screen.fill((25, 25, 25))
 
-    screen.fill(BACKGROUND_COLOR)
+    pygame.draw.rect(screen, (220, 220, 220), (100, 100, WIDTH - 200, HEIGHT - 200))
+    pygame.draw.rect(screen, (25, 25, 25), (250, 200, WIDTH - 500, HEIGHT - 400))
 
-    pygame.draw.rect(screen, TRACK_COLOR, TRACK_OUTER)
-    pygame.draw.rect(screen, BACKGROUND_COLOR, TRACK_INNER)
+    # pygame.draw.rect(screen, car_color, (car_x, car_y, CAR_WIDTH, CAR_HEIGHT))
+    car_surface = pygame.Surface((CAR_WIDTH, CAR_HEIGHT), pygame.SRCALPHA)
+    pygame.draw.rect(car_surface, car_color, (0, 0, CAR_WIDTH, CAR_HEIGHT))
 
-    pygame.draw.rect(screen, car_color, (car_x, car_y, car_width, car_height))
+    rotated_car = pygame.transform.rotate(car_surface, car_angle)
+
+    car_rect = pygame.Rect(car_x, car_y, CAR_WIDTH, CAR_HEIGHT)
+    rotated_rect = rotated_car.get_rect(center=car_rect.center)
+
+    screen.blit(rotated_car, rotated_rect)
     pygame.display.flip()
 
 pygame.quit()
