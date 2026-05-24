@@ -13,6 +13,10 @@ Right now the project is in the basic Pygame stage:
 - move the car with arrow keys
 - keep the car inside the screen
 - draw a simple rectangular track
+- detect when the car leaves the track
+- stop the car after a crash
+- reset the car with the `R` key
+- organize important values as constants
 - learn how the game loop works
 
 AI training will be added after the environment is easy to understand.
@@ -47,6 +51,9 @@ This project is for learning:
 - how keyboard input works
 - how screen coordinates work
 - how boundary clamping works
+- how simple collision checks work
+- how game state works with a `crashed` variable
+- how constants make code easier to change
 - how visual simulations are built
 - what an AI environment is
 - how observations, actions, rewards, and episodes work
