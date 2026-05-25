@@ -18,10 +18,29 @@ def is_on_track(x, y):
     inside_inner = 250 < x < WIDTH - 250 and 200 < y < HEIGHT - 200
     return inside_outer and not inside_inner
 
+def cast_sensor(start_x, start_y, angle):
+    angle_rad = math.radians(angle)
+    sensor_distance = SENSOR_LENGTH
+
+    for distance in range(SENSOR_LENGTH):
+        test_x = start_x + distance * math.cos(angle_rad)
+        test_y = start_y - distance * math.sin(angle_rad)
+
+        if not is_on_track(test_x, test_y):
+            sensor_distance = distance
+            break
+
+    end_x = start_x + sensor_distance * math.cos(angle_rad)
+    end_y = start_y - sensor_distance * math.sin(angle_rad)
+
+    return end_x, end_y, sensor_distance
+
+
 pygame.init()
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("TinyTrack AI")
+font = pygame.font.SysFont(None, 28)
 
 running = True
 
@@ -98,9 +117,9 @@ while running:
     pygame.draw.rect(screen, (220, 220, 220), (100, 100, WIDTH - 200, HEIGHT - 200))
     pygame.draw.rect(screen, (25, 25, 25), (250, 200, WIDTH - 500, HEIGHT - 400))
 
-    angle_rad = math.radians(car_angle)
-    sensor_end_x = car_center_x + SENSOR_LENGTH * math.cos(angle_rad)
-    sensor_end_y = car_center_y - SENSOR_LENGTH * math.sin(angle_rad)
+    sensor_end_x, sensor_end_y, sensor_distance = cast_sensor(car_center_x, car_center_y, car_angle)
+    sensor_text = font.render(f"Front: {sensor_distance}", True, (255, 255, 255))
+    screen.blit(sensor_text, (20, 20))
     pygame.draw.line(screen, (255, 255, 0), (car_center_x, car_center_y), (sensor_end_x, sensor_end_y), 2)
 
     # pygame.draw.rect(screen, car_color, (car_x, car_y, CAR_WIDTH, CAR_HEIGHT))
