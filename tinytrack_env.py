@@ -11,6 +11,12 @@ FPS = 60
 ACCELERATION = 0.4
 FRICTION = 0.9
 MAX_SPEED = 5
+SENSOR_LENGTH = 100
+
+def is_on_track(x, y):
+    inside_outer = 100 < x < WIDTH - 100 and 100 < y < HEIGHT - 100
+    inside_inner = 250 < x < WIDTH - 250 and 200 < y < HEIGHT - 200
+    return inside_outer and not inside_inner
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -76,9 +82,7 @@ while running:
     car_center_x = car_x + CAR_WIDTH / 2
     car_center_y = car_y + CAR_HEIGHT / 2
 
-    inside_outer = 100 < car_center_x < WIDTH - 100 and 100 < car_center_y < HEIGHT - 100
-    inside_inner = 250 < car_center_x < WIDTH - 250 and 200 < car_center_y < HEIGHT - 200
-    on_track = inside_outer and not inside_inner
+    on_track = is_on_track(car_center_x, car_center_y)
 
     if not on_track:
         crashed = True
@@ -93,6 +97,11 @@ while running:
 
     pygame.draw.rect(screen, (220, 220, 220), (100, 100, WIDTH - 200, HEIGHT - 200))
     pygame.draw.rect(screen, (25, 25, 25), (250, 200, WIDTH - 500, HEIGHT - 400))
+
+    angle_rad = math.radians(car_angle)
+    sensor_end_x = car_center_x + SENSOR_LENGTH * math.cos(angle_rad)
+    sensor_end_y = car_center_y - SENSOR_LENGTH * math.sin(angle_rad)
+    pygame.draw.line(screen, (255, 255, 0), (car_center_x, car_center_y), (sensor_end_x, sensor_end_y), 2)
 
     # pygame.draw.rect(screen, car_color, (car_x, car_y, CAR_WIDTH, CAR_HEIGHT))
     car_surface = pygame.Surface((CAR_WIDTH, CAR_HEIGHT), pygame.SRCALPHA)
